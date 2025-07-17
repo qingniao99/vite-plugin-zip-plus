@@ -1,0 +1,27 @@
+{
+  "name": "vite-plugin-zip-plus",
+  "version": "1.0.1",
+  "description": "a vite plugin which can zip special dir or files to anywhere you want.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qingniao99/vite-plugin-zip-plus.git"
+  },
+  "keywords": [
+    "vitejs",
+    "zip"
+  ],
+  "author": "qingniao99",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/qingniao99/vite-plugin-zip-plus/issues"
+  },
+  "homepage": "https://github.com/qingniao99/vite-plugin-zip-plus#readme",
+  "dependencies": {
+    "jszip": "^3.10.1",
+    "picomatch": "^4.0.3"
+  }
+}
