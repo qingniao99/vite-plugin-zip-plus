@@ -1,6 +1,6 @@
 {
   "name": "vite-plugin-zip-plus",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "a vite plugin which can zip special dir or files to anywhere you want.",
   "main": "index.js",
   "scripts": {

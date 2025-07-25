@@ -2,6 +2,7 @@ import fs from 'fs/promises'
 import path from 'path'
 import pm from 'picomatch'
 import JSZip from 'jszip'
+import crypto from 'crypto'
 
 const PLUGIN_NAME = 'vite-plugin-zip-plus'
 
@@ -21,6 +22,8 @@ function createZipPlugin(options = {}) {
     include: '**/*', // 默认包含所有文件
     exclude: null, // 默认没有排除规则
     verbose: false, // 是否输出详细日志
+    generateOffsetJson: false, // 是否生成 offset.json
+    offsetJsonContent: null,   // 自定义 offset.json 内容
     ...options
   }
 
@@ -77,6 +80,15 @@ function createZipPlugin(options = {}) {
 
       await addFilesToZip(rootDir, zip)
 
+      if (finalOptions.generateOffsetJson) {
+        const offsetContent = finalOptions.offsetJsonContent || await generateDefaultOffsetJson(rootDir, finalOptions.urlPrefix, finalOptions.zipFileName)
+        zip.file('offset.json', JSON.stringify(offsetContent, null, 2))
+        
+        if (finalOptions.verbose) {
+          console.log(`✅ 已添加: offset.json`)
+        }
+      }
+
       if (Object.keys(zip.files).length === 0) {
         if (finalOptions.verbose) {
           console.log('❌ 没有匹配到任何文件')
@@ -84,7 +96,7 @@ function createZipPlugin(options = {}) {
         return
       }
 
-      const zipPath = path.join(finalOptions.outputDir, finalOptions.zipFileName)
+      const zipPath = path.join(finalOptions.outputDir, finalOptions.zipFileName + '.zip')
       const content = await zip.generateAsync({ type: 'nodebuffer' })
       await fs.writeFile(zipPath, content)
 
@@ -92,6 +104,55 @@ function createZipPlugin(options = {}) {
       console.log(`✅ 压缩完成: ${zipPath} （耗时 ${duration}ms）`)
     }
   }
+}
+
+async function generateDefaultOffsetJson(rootDir, urlPrefix = '', folderName = '') {
+  const items = []
+  
+  const scanFiles = async (dirPath) => {
+    try {
+      const files = await fs.readdir(dirPath)
+      for (const file of files) {
+        const fullPath = path.join(dirPath, file)
+        const stat = await fs.stat(fullPath)
+        const relativePath = path.relative(rootDir, fullPath)
+        
+        if (stat.isDirectory()) {
+          await scanFiles(fullPath)
+        } else {
+          const ext = path.extname(file).toLowerCase()
+          let mimeType = 'application/octet-stream'
+          if (ext === '.css') mimeType = 'text/css'
+          else if (ext === '.js') mimeType = 'application/javascript'
+          else if (ext === '.html') mimeType = 'text/html'
+          
+          items.push({
+            version: 1,
+            url: `${urlPrefix}${relativePath}`,
+            path: relativePath,
+            tag: generateFileHash(fullPath),
+            mimeType
+          })
+        }
+      }
+    } catch (e) {
+      // 忽略错误
+    }
+  }
+  
+  await scanFiles(rootDir)
+  
+  return {
+    id: "",
+    name: "",
+    version: 1,
+    folderName,
+    items
+  }
+}
+
+function generateFileHash(filePath) {
+  return crypto.createHash('md5').update(filePath + Date.now()).digest('hex')
 }
 
 export default createZipPlugin
