@@ -10,7 +10,7 @@ const PLUGIN_NAME = 'vite-plugin-zip-plus'
 function matches(pattern, value) {
   if (!value) return false
   if (typeof pattern === 'function') return pattern(value)
-  if (typeof pattern === 'string') return pm(pattern)(value)
+  if (typeof pattern === 'string' || Array.isArray(pattern)) return pm(pattern, { posix: true })(value)
   if (pattern instanceof RegExp) return pattern.test(value)
   return false
 }
