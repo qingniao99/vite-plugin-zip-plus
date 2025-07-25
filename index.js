@@ -58,11 +58,11 @@ function createZipPlugin(options = {}) {
             }
 
             // 包含匹配
-            if (!finalOptions.include || matches(finalOptions.include, relativePath)) {
-              if (stat.isDirectory()) {
-                const subFolder = zipFolder.folder(file)
-                await addFilesToZip(fullPath, subFolder)
-              } else {
+            if (stat.isDirectory()) {
+              const subFolder = zipFolder.folder(file)
+              await addFilesToZip(fullPath, subFolder)
+            } else {
+              if (!finalOptions.include || matches(finalOptions.include, relativePath)) {
                 const content = await fs.readFile(fullPath)
                 zipFolder.file(file, content)
                 if (finalOptions.verbose) {
